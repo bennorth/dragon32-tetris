@@ -1,12 +1,11 @@
 BEGIN       JSR    BORDER
             JSR    CLMTRX
-            LDA    #$04
+            CLR    SCORE
+            CLR    SCORE+1
 BK1         JSR    ONEBLK
-            DECA
-            BNE    BK1
-            LDA    #$14
-            JSR    CLRLIN
-            JSR    LINDWN
+            JSR    CHKLIN
+            JSR    CHKOVR
+            BEQ    BK1
             RTS
 
             ;; GLOBAL VARIABLES
@@ -16,7 +15,8 @@ BLKX        RMB    1
 BLKY        RMB    1
 BLKN        RMB    1
 BLKR        RMB    1
-MATRIX      RMB    40
+MATRIX      RMB    42
+SCORE       RMB    2
 
 INCH        EQU    $8006
 RANDOM      EQU    $978E
@@ -345,8 +345,6 @@ BDHRZ       FDB    $0000,$C663,$F3CF,$F99F,$3C3C,$0E70,$84E3,$E1C7
             ;; READ ONE BIT FROM PLAY
             ;; AREA MATRIX
             ;; IN: X-XCOORD:YCOORD
-            ;;     (REFERRED TO MATRIX
-            ;;      NOT SCREEN)
             ;; OUT: CC ZERO BIT-STATUS
             ;;        0-MTRX BIT SET
             ;;        1-MTRX BIT CLEAR
@@ -357,6 +355,7 @@ RDMTRX      PSHS   X,Y,D
             ASLA
             STA    TMP1
             LDA    XCRD
+            SUBA   #$03
             LSRA
             LSRA
             LSRA
@@ -364,6 +363,7 @@ RDMTRX      PSHS   X,Y,D
             LDX    #MATRIX
             LEAX   A,X      ; X NOW HOLDS ADDRESS WITH BIT IN
             LDA    XCRD
+            SUBA   #$03
             ANDA   #$07
             LDY    #MASKP
             LDB    A,Y
@@ -381,12 +381,14 @@ MASKP       FDB    $8040,$2010,$0804,$0201
             ;; WRITE ONE BIT TO PLAY
             ;; AREA MATRIX
             ;; IN: X-XCOORD:YCOORD
-            ;;     (REL. TO MATRIX)
             ;;     A-BIT TO WRITE (0/1)
             ;;
 WRMTRX      PSHS   X,Y,D
             STX    XCRD
             STA    TMP1
+            LDA    XCRD
+            SUBA   #$03
+            STA    XCRD
             LDA    YCRD
             ASLA
             STA    TMP2
@@ -451,8 +453,6 @@ B6          LDA    TMP2
             ADDA   ,Y+
             LDB    TMP2+1
             ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
-            SUBA   #$03
-            DECB            ; MAKE COORDS REL TO MATRIX NOT SCR
             TFR    D,X
             JSR    RDMTRX
             BNE    OUT2     ; RETURN LEAVING Z CLEAR IF
@@ -516,7 +516,7 @@ PROUT       ANDCC  #$FB
 CLMTRX      PSHS   X
             LDX    #MATRIX
 B8          CLR    ,X+
-            CMPX   #MATRIX+40
+            CMPX   #MATRIX+42
             BNE    B8
             PULS   X
             RTS
@@ -636,8 +636,6 @@ B9          LDA    BLKX
             ADDA   ,Y+
             LDB    BLKY
             ADDB   ,Y++     ; SKIP CHAR DATA BYTE
-            SUBA   #$03
-            DECB
             TFR    D,X
             LDA    #$01
             JSR    WRMTRX
@@ -766,12 +764,14 @@ B16         LSL    ,X+
             ;; LINDWN
             ;;
             ;; MOVE THE PLAY AREA DOWN
-            ;; ONE PIXEL ON SCREEN
+            ;; ONE LINE ON SCREEN
             ;; IN: A-LINE WHICH WILL BE
             ;;       OVERWRITTEN BY THE
             ;;       MOVING DOWN PROCESS
             ;;
 LINDWN      PSHS   X,Y,D
+            CMPA   #$01
+            BEQ    OUT8
             LDB    #$E3
             ADDD   SCRBASE
             STD    TMP2
@@ -796,13 +796,78 @@ B19         LDY    -32,X
             DEC    ,S
             BNE    B17A
             LEAS   1,S      ; DISCARD COUNTER
-            PULS   X,Y,D
+OUT8        PULS   X,Y,D
             RTS
 
-            ;; SCROLL
+            ;; CHKLIN
             ;;
-            ;; MOVES PLAY AREA DOWN ONE
-            ;; LINE ON SCREEN
-            ;; IN: A-LINE WHICH WILL BE
-            ;;     OVERWRITTEN BY THE
-            ;;     SCROLL
+            ;; CHECKS PLAY AREA FOR
+            ;; COMPLETE LINES, AND TAKES
+            ;; APPROPRIATE ACTION IF
+            ;; NECESSARY
+            ;;
+CHKLIN      PSHS   X,Y,D
+            LDA    #$01
+B20         LDX    #MATRIX
+            LEAX   A,X
+            LDX    A,X      ; TWO DATA BYTES IN X
+            CMPX   #$FFC0   ; FULL LINE
+            BEQ    FULL
+N5          INCA
+            CMPA   #$15
+            BNE    B20
+            PULS   X,Y,D
+            RTS
+FULL        JSR    CLRLIN
+            JSR    LINDWN
+            JSR    MTXDWN
+            PSHS   A
+            LDA    SCORE+1
+            INCA
+            DAA
+            STA    SCORE+1
+            BNE    N6
+            LDA    SCORE
+            INCA
+            DAA
+            STA    SCORE
+N6          LDD    SCORE
+            LDX    #$1001
+            JSR    PRSCOR
+            PULS   A
+            BRA    N5
+
+            ;; MTXDWN
+            ;;
+            ;; MOVES MATRIX DOWN ONE
+            ;; LINE AND CLEARS TOP
+            ;; IN: A-LINE TO MOVE DOWN
+            ;;       TO
+            ;;
+MTXDWN      PSHS   X,Y,D
+            CMPA   #$01
+            BEQ    OUT9
+            LDX    #MATRIX
+            ASLA
+            LEAX   A,X
+B21         LDD    ,--X
+            STD    2,X
+            CMPX   #MATRIX
+            BNE    B21
+            CLR    MATRIX
+            CLR    MATRIX+1
+OUT9        PULS   X,Y,D
+            RTS
+
+            ;; CHKOVR
+            ;;
+            ;; CHECK TO SEE IF GAME IS
+            ;; OVER (IE ANYTHING IN LINE
+            ;; 0 OF MATRIX)
+            ;; OUT: CC ZERO BIT
+            ;;      0-GAME OVER
+            ;;      1-GAME NOT OVER
+CHKOVER     PSHS   X,Y,D
+            LDD    MATRIX   ; THIS SETS OR CLEARS ZERO BIT AS NEEDED
+            PULS   X,Y,D
+            RTS
