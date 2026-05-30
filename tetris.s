@@ -6,6 +6,7 @@ BK1         JSR    ONEBLK
             BNE    BK1
             LDA    #$14
             JSR    CLRLIN
+            JSR    LINDWN
             RTS
 
             ;; GLOBAL VARIABLES
@@ -756,6 +757,7 @@ B16         LSL    ,X+
             BNE    B15
             JSR    DELAY
             JSR    DELAY
+            JSR    DELAY
             DEC    COUNT
             BNE    B14
             PULS   X,Y,D
@@ -764,26 +766,43 @@ B16         LSL    ,X+
             ;; LINDWN
             ;;
             ;; MOVE THE PLAY AREA DOWN
-            ;; ONE LINE ON SCREEN
+            ;; ONE PIXEL ON SCREEN
             ;; IN: A-LINE WHICH WILL BE
             ;;       OVERWRITTEN BY THE
             ;;       MOVING DOWN PROCESS
             ;;
 LINDWN      PSHS   X,Y,D
-            LDB    #$03
+            LDB    #$E3
+            ADDD   SCRBASE
+            STD    TMP2
+            LDD    SCRBASE
+            ADDD   #$01E3
             STD    TMP1
-            LDX    SCRBASE
-            LEAX   $0103,X
+            LDA    #$08
+            PSHS   A
+B17A        LDX    TMP2
 B17         LDA    #$08
 B18         LDB    #$05
-B19         LDY    ,X++
-            STY    30,X
+B19         LDY    -32,X
+            STY    ,X++
             DECB
             BNE    B19
-            LEAX   22,X
+            LEAX   -42,X
             DECA
             BNE    B18
             CMPX   TMP1
             BNE    B17
+            JSR    DELAY
+            DEC    ,S
+            BNE    B17A
+            LEAS   1,S      ; DISCARD COUNTER
             PULS   X,Y,D
             RTS
+
+            ;; SCROLL
+            ;;
+            ;; MOVES PLAY AREA DOWN ONE
+            ;; LINE ON SCREEN
+            ;; IN: A-LINE WHICH WILL BE
+            ;;     OVERWRITTEN BY THE
+            ;;     SCROLL
