@@ -1,11 +1,6 @@
-BEGIN       JSR    BORDER
-            JSR    CLMTRX
-            CLR    SCORE
-            CLR    SCORE+1
-BK1         JSR    ONEBLK
-            JSR    CHKLIN
-            JSR    CHKOVR
-            BEQ    BK1
+            ORG    $7000
+
+BEGIN       JSR    PLAY
             RTS
 
             ;; GLOBAL VARIABLES
@@ -79,16 +74,16 @@ CHTABLE     FDB    $0000,$0000,$0000,$0000
             FDB    $BDBC,$BFBF,$BFBF,$BCBD
             FDB    $BD3D,$FDFD,$FDFD,$3DBD
             FDB    $FFFF,$FFFF,$FFFF,$FFFF
-            FDB    $003C,$2424,$2424,$243C
-            FDB    $0004,$0404,$0404,$0404
-            FDB    $003C,$0404,$3C20,$203C
-            FDB    $003C,$0404,$3C04,$043C
-            FDB    $0024,$2424,$3C04,$0404
-            FDB    $003C,$2020,$3C04,$043C
-            FDB    $003C,$2020,$3C24,$243C
-            FDB    $003C,$2424,$2404,$0404
-            FDB    $003C,$2424,$3C24,$243C
-            FDB    $003C,$2424,$3C04,$043C
+            FDB    $0018,$2424,$2424,$2418
+            FDB    $0008,$1808,$0808,$081C
+            FDB    $001C,$2202,$1C20,$203E
+            FDB    $001C,$2202,$0C02,$221C
+            FDB    $000C,$1424,$3E04,$0404
+            FDB    $003E,$203C,$0202,$221C
+            FDB    $001C,$2220,$3C22,$221C
+            FDB    $003E,$0204,$0810,$2020
+            FDB    $0038,$4444,$3844,$4438
+            FDB    $0038,$4444,$3C04,$4438
 
             ;; PRSCOR
             ;;
@@ -726,10 +721,15 @@ N4          STA    BLKN
             LDX    #$0702
             STX    BLKX
             LDD    BLKN
+            JSR    CHKCLR
+            BNE    GOHOME
             JSR    PUTBLK
             JSR    GOBLK
             PULS   X,Y,D
             RTS
+GOHOME      PULS   X,Y,D
+            LEAS   2,S      ; IF NEW BLOCK IS OVER AN OLD ONE,
+            RTS             ; SKIP ONE PC AND RETURN
 
             ;; CLRLIN
             ;;
@@ -859,15 +859,14 @@ B21         LDD    ,--X
 OUT9        PULS   X,Y,D
             RTS
 
-            ;; CHKOVR
+            ;; PLAY
             ;;
-            ;; CHECK TO SEE IF GAME IS
-            ;; OVER (IE ANYTHING IN LINE
-            ;; 0 OF MATRIX)
-            ;; OUT: CC ZERO BIT
-            ;;      0-GAME OVER
-            ;;      1-GAME NOT OVER
-CHKOVER     PSHS   X,Y,D
-            LDD    MATRIX   ; THIS SETS OR CLEARS ZERO BIT AS NEEDED
-            PULS   X,Y,D
-            RTS
+            ;; PLAYS A COMPLETE GAME
+            ;;
+PLAY        JSR    BORDER
+            JSR    CLMTRX
+            CLR    SCORE
+            CLR    SCORE+1
+BACK        JSR    ONEBLK
+            JSR    CHKLIN
+            BRA    BACK
