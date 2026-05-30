@@ -38,6 +38,7 @@ BLKX        RMB    1
 BLKY        RMB    1
 BLKN        RMB    1
 BLKR        RMB    1
+MATRIX      RMB    40
 
 INCH        EQU    $8006
 
@@ -358,3 +359,209 @@ BDRC        FDB    $73CE,$F18E,$E01C,$C01C,$0638,$0E38,$8E70,$C070
 
 BDHRZ       FDB    $0000,$C663,$F3CF,$F99F,$3C3C,$0E70,$84E3,$E1C7
             FDB    $E387,$C721,$0E70,$3C3C,$F99F,$F3CF,$C663,$0000
+
+            ;; RDMTRX
+            ;;
+            ;; READ ONE BIT FROM PLAY
+            ;; AREA MATRIX
+            ;; IN: X-XCOORD:YCOORD
+            ;;     (REFERRED TO MATRIX
+            ;;      NOT SCREEN)
+            ;; OUT: CC ZERO BIT-STATUS
+            ;;        0-MTRX BIT SET
+            ;;        1-MTRX BIT CLEAR
+            ;;
+RDMTRX      PSHS   X,Y,D
+            STX    XCRD
+            LDA    YCRD
+            ASLA
+            STA    TMP1
+            LDA    XCRD
+            LSRA
+            LSRA
+            LSRA
+            ADDA   TMP1
+            LDX    #MATRIX
+            LEAX   A,X      ; X NOW HOLDS ADDRESS WITH BIT IN
+            LDA    XCRD
+            ANDA   #$07
+            LDY    #MASKP
+            LDB    A,Y
+            PSHS   B
+            LDA    ,X
+            ANDA   ,S+      ; THIS SETS/CLEARS ZERO BIT AS
+                            ; NEEDED
+            PULS   X,Y,D    ; DOESN'T AFFECT ZERO BIT
+            RTS
+
+MASKP       FDB    $8040,$2010,$0804,$0201
+
+            ;; WRMTRX
+            ;;
+            ;; WRITE ONE BIT TO PLAY
+            ;; AREA MATRIX
+            ;; IN: X-XCOORD:YCOORD
+            ;;     (REL. TO MATRIX)
+            ;;     A-BIT TO WRITE (0/1)
+            ;;
+WRMTRX      PSHS   X,Y,D
+            STX    XCRD
+            STA    TMP1
+            LDA    YCRD
+            ASLA
+            STA    TMP2
+            LDA    XCRD
+            LSRA
+            LSRA
+            LSRA
+            ADDA   TMP2
+            LDX    #MATRIX
+            LEAX   A,X      ; X NOW HOLDS ADDRESS
+            TST    TMP1
+            BNE    SETIT
+            LDA    XCRD
+            ANDA   #$07
+            LDY    #MASKN
+            LDA    A,Y
+            LDB    ,X
+            PSHS   B
+            ANDA   ,S+
+            STA    ,X
+            PULS   X,Y,D
+            RTS
+SETIT       LDA    XCOORD
+            ANDA   #$07
+            LDY    #MASKP
+            LDA    A,Y
+            LDB    ,X
+            PSHS   B
+            ORA    ,S+
+            STA    ,X
+            PULS   X,Y,D
+            RTS
+
+MASKN       FDB    $7FBF,$DFEF,$F7FB,$FDFE
+
+            ;; CHKCLR
+            ;;
+            ;; CHECK TO SEE IF A BLOCK
+            ;; DETAILED WOULD IMPINGE
+            ;; ON A PREVIOUS BLOCK
+            ;; IN: X-XCOORD:YCOORD
+            ;;     A-BLOCK NUMBER
+            ;;     B-ROTATION
+            ;; OUT: CC ZERO BIT
+            ;;      0-WOULD IMPINGE
+            ;;      1-WOULD NOT IMPINGE
+            ;;
+CHKCLR      PSHS   X,Y,D
+            STD    TMP1
+            STX    TMP2
+            LDB    #$04
+            STB    COUNT
+            LDB    #$30
+            MUL
+            TFR    D,Y
+            LDA    TMP1+1
+            LDB    #$0C
+            MUL
+            ADDD   #BLKTBL
+            LEAY   D,Y      ; START OF DATA NOW IN Y
+B6          LDA    TMP2
+            ADDA   ,Y+
+            LDB    TMP2+1
+            ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
+            TFR    D,X
+            JSR    RDMTRX
+            BNE    OUT2     ; RETURN LEAVING Z CLEAR IF
+                            ; IMPINGEMENT
+            DEC    COUNT
+            BNE    B6       ; FAILS "BNE" IF ZERO SET, AND THIS
+                            ; IS ALSO WHAT IS WANTED FOR NO
+                            ; IMPINGEMENT
+OUT2        PULS   X,Y,D
+            RTS
+
+            ;; CHKIN
+            ;;
+            ;; CHECK TO SEE IF A BLOCK
+            ;; DETAILED IS ALL INSIDE
+            ;; THE PLAYING AREA
+            ;; IN: X-XCOORD:YCOORD
+            ;;     A-BLOCK NUMBER
+            ;;     B-ROTATION
+            ;; OUT: CC ZERO BIT
+            ;;      0-SOME PROTRUDES
+            ;;      1-ALL INSIDE AREA
+            ;;
+CHKIN       PSHS   X,Y,D
+            STD    TMP1
+            STX    TMP2
+            LDB    #$04
+            STB    COUNT
+            LDB    #$30
+            MUL
+            TFR    D,Y
+            LDA    TMP1+1
+            LDB    #$0C
+            MUL
+            ADDD   #BLKTBL
+            LEAY   D,Y      ; START OF DATA NOW IN Y
+B7          LDA    TMP2
+            ADDA   ,Y+
+            LDB    TMP2+1
+            ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
+            CMPA   #$03
+            BLO    PROUT
+            CMPA   #$0C
+            BHI    PROUT
+            CMPB   #$01
+            BLO    PROUT
+            CMPB   #$14
+            BHI    PROUT
+            DEC    COUNT
+            BNE    B7
+            PULS   X,Y,D
+            RTS             ; GETS HERE IF ALL INSIDE, AND THE
+                            ; 'DEC' INSTRUCTION WILL HAVE SET Z
+PROUT       ANDCC  #$FB
+            PULS   X,Y,D
+            RTS             ; CLEAR Z TO INDICATE PROTRUSION
+
+            ;; CLMTRX
+            ;;
+            ;; CLEAR ENTIRE PLAY MATRIX
+            ;; IN: NONE
+            ;;
+CLMTRX      PSHS   X
+            LDX    #MATRIX
+B8          CLR    ,X+
+            CMPX   #MATRIX+40
+            BNE    B8
+            PULS   X
+            RTS
+
+            ;; LEFT
+            ;;
+            ;; CHECKS IF OK TO MOVE THE
+            ;; CURRENT BLOCK LEFT ONE
+            ;; PLACE, THEN DOES SO IF
+            ;; POSSIBLE
+            ;; OUT: CC ZERO BIT
+            ;;      0-COULD NOT MOVE
+            ;;      1-MOVED OK
+            ;;
+            PSHS   X,Y,D
+            LDD    BLKX
+            DECA
+            TFR    D,X      ; COORDS TO TEST IN X
+            LDD    BLKN
+            JSR    CHKIN
+            BNE    OUT3
+            JSR    CHKCLR
+            BNE    OUT3
+            LDA    #$FF
+            JSR    MOVBLK
+            CLR    TEMP1    ; SETS Z
+OUT3        PULS   X,Y,D
+            RTS
