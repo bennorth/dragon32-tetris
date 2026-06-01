@@ -1,35 +1,15 @@
 BEGIN       JSR    BORDER
+            JSR    CLMTRX
             LDX    #$0702
             LDD    #$0200
             STX    BLKX
             STD    BLKN
             JSR    PUTBLK
-SET         LDY    #$4000
-BACK        LEAY   -1,Y
-            BEQ    FALL
-            JSR    INCH
-            BEQ    BACK
-            CMPA   #$09
-            BNE    N1
-            LDA    #$01
-            JSR    MOVBLK
-            BRA    BACK
-N1          CMPA   #$08
-            BNE    N2
-            LDA    #$FF
-            JSR    MOVBLK
-            BRA    BACK
-N2          CMPA   #$20
-            BNE    N3
-            JSR    ROTBLK
-            BRA    BACK
-N3          CMPA   #$03
-            BEQ    HOME
-            BRA    BACK
-FALL        CLRA
-            JSR    MOVBLK
-            BRA    SET
-HOME        RTS
+            LDA    #$04
+B13         JSR    GOBLK
+            DECA
+            BNE    B13
+            RTS
 
             ;; GLOBAL VARIABLES
             ;; AND EQUATES
@@ -261,11 +241,11 @@ MOVBLK      PSHS   X,B
             JSR    CLRBLK
             PULS   A        ; GET DIR BACK
             TSTA
-            BEQ    DOWN
+            BEQ    DWN
             ADDA   BLKX
             STA    BLKX
             BRA    PUT
-DOWN        INC    BLKY
+DWN         INC    BLKY
 PUT         LDX    BLKX
             LDD    BLKN
             JSR    PUTBLK
@@ -391,7 +371,7 @@ RDMTRX      PSHS   X,Y,D
             LDA    ,X
             ANDA   ,S+      ; THIS SETS/CLEARS ZERO BIT AS
                             ; NEEDED
-            PULS   X,Y,D    ; DOESN'T AFFECT ZERO BIT
+            PULS   X,Y,D    ; DOES NOT AFFECT ZERO BIT
             RTS
 
 MASKP       FDB    $8040,$2010,$0804,$0201
@@ -429,7 +409,7 @@ WRMTRX      PSHS   X,Y,D
             STA    ,X
             PULS   X,Y,D
             RTS
-SETIT       LDA    XCOORD
+SETIT       LDA    XCRD
             ANDA   #$07
             LDY    #MASKP
             LDA    A,Y
@@ -471,6 +451,8 @@ B6          LDA    TMP2
             ADDA   ,Y+
             LDB    TMP2+1
             ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
+            SUBA   #$03
+            DECB            ; MAKE COORDS REL TO MATRIX NOT SCR
             TFR    D,X
             JSR    RDMTRX
             BNE    OUT2     ; RETURN LEAVING Z CLEAR IF
@@ -523,7 +505,7 @@ B7          LDA    TMP2
             BNE    B7
             PULS   X,Y,D
             RTS             ; GETS HERE IF ALL INSIDE, AND THE
-                            ; 'DEC' INSTRUCTION WILL HAVE SET Z
+                            ; "DEC" INSTRUCTION WILL HAVE SET Z
 PROUT       ANDCC  #$FB
             PULS   X,Y,D
             RTS             ; CLEAR Z TO INDICATE PROTRUSION
@@ -551,7 +533,7 @@ B8          CLR    ,X+
             ;;      0-COULD NOT MOVE
             ;;      1-MOVED OK
             ;;
-            PSHS   X,Y,D
+LEFT        PSHS   X,Y,D
             LDD    BLKX
             DECA
             TFR    D,X      ; COORDS TO TEST IN X
@@ -562,6 +544,168 @@ B8          CLR    ,X+
             BNE    OUT3
             LDA    #$FF
             JSR    MOVBLK
-            CLR    TEMP1    ; SETS Z
+            CLR    TMP1     ; SETS Z
 OUT3        PULS   X,Y,D
             RTS
+
+            ;; RIGHT
+            ;;
+            ;; AS FOR `LEFT` BUT MOVES
+            ;; RIGHT NOT LEFT
+            ;; OUT: CC ZERO BIT
+            ;;      0-COULD NOT MOVE
+            ;;      1-MOVED OK
+            ;;
+RIGHT       PSHS   X,Y,D
+            LDD    BLKX
+            INCA
+            TFR    D,X      ; COORDS TO TEST
+            LDD    BLKN
+            JSR    CHKIN
+            BNE    OUT4
+            JSR    CHKCLR
+            BNE    OUT4
+            LDA    #$01
+            JSR    MOVBLK
+            CLR    TMP1     ; SETS Z
+OUT4        PULS   X,Y,D
+            RTS
+
+            ;; DOWN
+            ;;
+            ;; AS FOR `RIGHT` AND `LEFT`,
+            ;; EXCEPT MOVES DOWN
+            ;; OUT: CC ZERO BIT
+            ;;      0-COULD NOT MOVE
+            ;;      1-MOVED OK
+            ;;
+DOWN        PSHS   X,Y,D
+            LDD    BLKX
+            INCB
+            TFR    D,X
+            LDD    BLKN
+            JSR    CHKIN
+            BNE    OUT5
+            JSR    CHKCLR
+            BNE    OUT5
+            CLRA
+            JSR    MOVBLK
+            CLR    TMP1
+OUT5        PULS   X,Y,D
+            RTS
+
+            ;; TWIST
+            ;;
+            ;; TWISTS BLOCK ONE STEP IF
+            ;; POSSIBLE
+            ;; OUT: CC ZERO BIT
+            ;;      0-COULD NOT TWIST
+            ;;      1-TWISTED OK
+            ;;
+TWIST       PSHS   X,Y,D
+            LDX    BLKX
+            LDD    BLKN
+            INCB
+            ANDB   #$03
+            JSR    CHKIN
+            BNE    OUT6
+            JSR    CHKCLR
+            BNE    OUT6
+            JSR    ROTBLK
+            CLR    TMP1
+OUT6        PULS   X,Y,D
+            RTS
+
+            ;; LDMTRX
+            ;;
+            ;; LOADS CURRENT BLOCK DATA
+            ;; INTO PLAY AREA MATRIX
+            ;; IN: NONE
+            ;;
+LDMTRX      PSHS   X,Y,D
+            LDA    BLKN
+            LDB    #$30
+            MUL
+            TFR    D,Y
+            LDA    BLKR
+            LDB    #$0C
+            MUL
+            ADDD   #BLKTBL
+            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LDA    #$04
+            STA    COUNT
+B9          LDA    BLKX
+            ADDA   ,Y+
+            LDB    BLKY
+            ADDB   ,Y++     ; SKIP CHAR DATA BYTE
+            SUBA   #$03
+            DECB
+            TFR    D,X
+            LDA    #$01
+            JSR    WRMTRX
+            DEC    COUNT
+            BNE    B9
+            PULS   X,Y,D
+            RTS
+
+            ;; DROP
+            ;;
+            ;; DROPS CURRENT BLOCK AS
+            ;; FAR AS IT WILL GO AND
+            ;; ALTERS MATRIX ACCORDINGLY
+            ;; IN: NONE
+            ;;
+DROP        PSHS   X,Y,D
+B10         JSR    DELAY
+            JSR    DOWN
+            BEQ    B10
+            JSR    LDMTRX
+            PULS   X,Y,D
+            RTS
+
+            ;; DELAY
+            ;;
+            ;; PROVIDES A SHORT DELAY
+            ;;
+DELAY       PSHS   X
+            LDX    #$0800
+B11         LEAX   -1,X
+            BNE    B11
+            PULS   X
+            RTS
+
+            ;; GOBLK
+            ;;
+            ;; TAKES CONTROL OF CURRENT
+            ;; BLOCK AND COMPLETES ITS
+            ;; PLAY
+            ;;
+GOBLK       PSHS   X,Y,D
+SET         LDY    FALLDY
+B12         LEAY   -1,Y
+            BEQ    FALL
+            JSR    INCH
+            BNE    B11
+            CMPA   #$09
+            BNE    N1
+            JSR    RIGHT
+            BRA    B11
+N1          CMPA   #$08
+            BNE    N2
+            JSR    LEFT
+            BRA    B12
+N2          CMPA   #$0A
+            BNE    N3
+            JSR    DROP
+            BRA    OUT7
+N3          CMPA   #$20
+            BNE    B11
+            JSR    TWIST
+            BRA    B12
+FALL        JSR    DOWN
+            BEQ    SET
+            JSR    LDMTRX
+OUT7        PULS   X,Y,D
+            RTS
+
+FALLDY      FDB    $3000
