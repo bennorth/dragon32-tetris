@@ -1,14 +1,11 @@
 BEGIN       JSR    BORDER
             JSR    CLMTRX
-            LDX    #$0702
-            LDD    #$0200
-            STX    BLKX
-            STD    BLKN
-            JSR    PUTBLK
             LDA    #$04
-B13         JSR    GOBLK
+BK1         JSR    ONEBLK
             DECA
-            BNE    B13
+            BNE    BK1
+            LDA    #$14
+            JSR    CLRLIN
             RTS
 
             ;; GLOBAL VARIABLES
@@ -21,6 +18,8 @@ BLKR        RMB    1
 MATRIX      RMB    40
 
 INCH        EQU    $8006
+RANDOM      EQU    $978E
+RND         EQU    $116
 
             ;; PUTCHR
             ;;
@@ -497,8 +496,6 @@ B7          LDA    TMP2
             BLO    PROUT
             CMPA   #$0C
             BHI    PROUT
-            CMPB   #$01
-            BLO    PROUT
             CMPB   #$14
             BHI    PROUT
             DEC    COUNT
@@ -685,11 +682,11 @@ SET         LDY    FALLDY
 B12         LEAY   -1,Y
             BEQ    FALL
             JSR    INCH
-            BNE    B11
+            BEQ    B12
             CMPA   #$09
             BNE    N1
             JSR    RIGHT
-            BRA    B11
+            BRA    B12
 N1          CMPA   #$08
             BNE    N2
             JSR    LEFT
@@ -699,7 +696,7 @@ N2          CMPA   #$0A
             JSR    DROP
             BRA    OUT7
 N3          CMPA   #$20
-            BNE    B11
+            BNE    B12
             JSR    TWIST
             BRA    B12
 FALL        JSR    DOWN
@@ -709,3 +706,84 @@ OUT7        PULS   X,Y,D
             RTS
 
 FALLDY      FDB    $3000
+
+            ;; ONEBLK
+            ;;
+            ;; CHOOSES A RANDOM BLOCK
+            ;; AND PLAYS IT
+            ;;
+ONEBLK      PSHS   X,Y,D
+            JSR    RANDOM
+            LDA    RND
+B13         CMPA   #$06
+            BLS    N4
+            SUBA   #$07
+            BRA    B13
+N4          STA    BLKN
+            JSR    RANDOM
+            LDA    RND
+            ANDA   #$03
+            STA    BLKR
+            LDX    #$0702
+            STX    BLKX
+            LDD    BLKN
+            JSR    PUTBLK
+            JSR    GOBLK
+            PULS   X,Y,D
+            RTS
+
+            ;; CLRLIN
+            ;;
+            ;; CLEARS A LINE OF THE PLAY
+            ;; AREA FROM THE SCREEN
+            ;; IN: A-LINE TO CLEAR
+            ;;
+CLRLIN      PSHS   X,Y,D
+            LDB    #$03
+            ADDD   SCRBASE
+            TFR    D,X
+            STX    TMP1
+            LDA    #$08
+            STA    COUNT
+B14         LDX    TMP1
+            LDA    #$08
+B15         LDB    #$0A
+B16         LSL    ,X+
+            DECB
+            BNE    B16
+            LEAX   22,X
+            DECA
+            BNE    B15
+            JSR    DELAY
+            JSR    DELAY
+            DEC    COUNT
+            BNE    B14
+            PULS   X,Y,D
+            RTS
+
+            ;; LINDWN
+            ;;
+            ;; MOVE THE PLAY AREA DOWN
+            ;; ONE LINE ON SCREEN
+            ;; IN: A-LINE WHICH WILL BE
+            ;;       OVERWRITTEN BY THE
+            ;;       MOVING DOWN PROCESS
+            ;;
+LINDWN      PSHS   X,Y,D
+            LDB    #$03
+            STD    TMP1
+            LDX    SCRBASE
+            LEAX   $0103,X
+B17         LDA    #$08
+B18         LDB    #$05
+B19         LDY    ,X++
+            STY    30,X
+            DECB
+            BNE    B19
+            LEAX   22,X
+            DECA
+            BNE    B18
+            CMPX   TMP1
+            BNE    B17
+            PULS   X,Y,D
+            RTS
