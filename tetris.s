@@ -54,7 +54,15 @@ YCRD        RMB    1
 
 SCRBASE     FDB    $0C00
 
-CHTABLE     FDB    $0000,$0000,$0000,$0000
+            ;; Table of character graphics.  Each character takes 8
+            ;; bytes, so one line of source code.
+            ;;
+            ;; Char 0: blank (full black)
+CHTABLE     FDB    $0000,$0000,$0000,$0000 ; full black
+
+            ;; Chars 1 to 19 (incl): white with different combinations
+            ;; of edges and corners having black stripe one pixel in
+            ;; from edge.
             FDB    $BDBD,$BDBD,$BDBD,$BDBD
             FDB    $FF00,$FFFF,$FFFF,$00FF
             FDB    $BFBF,$BFBF,$BFBF,$80FF
@@ -74,6 +82,8 @@ CHTABLE     FDB    $0000,$0000,$0000,$0000
             FDB    $BDBC,$BFBF,$BFBF,$BCBD
             FDB    $BD3D,$FDFD,$FDFD,$3DBD
             FDB    $FFFF,$FFFF,$FFFF,$FFFF
+
+            ;; Chars 20 to 29 (incl): decimal digits 0 to 9
             FDB    $0018,$2424,$2424,$2418
             FDB    $0008,$1808,$0808,$081C
             FDB    $001C,$2202,$1C20,$203E
@@ -159,30 +169,43 @@ B1          LDA    TMP2
 TMP2        RMB    2
 COUNT       RMB    1
 
+            ;; Block data is organised firstly by piece type.  Within
+            ;; each piece type, there are four chunks of data, one per
+            ;; rotation.  Within each piece-with-rotation chunk, there
+            ;; are four records, one per cell making up the piece, of
+            ;; three bytes: (x offset, y offset, character).
+            ;;
+            ;; Block 0:
 BLKTBL      FDB    $0000,$0500,$0104,$FF00,$06FF,$0103
             FDB    $0000,$0500,$0104,$FF00,$06FF,$0103
             FDB    $0000,$0500,$0104,$FF00,$06FF,$0103
             FDB    $0000,$0500,$0104,$FF00,$06FF,$0103
+            ;; Block 1:
             FDB    $0000,$0701,$0002,$0200,$0E00,$FF0B
             FDB    $0000,$08FF,$000D,$00FF,$0100,$FE0B
             FDB    $0000,$09FF,$0002,$FE00,$0D00,$010C
             FDB    $0000,$0A01,$000E,$0001,$0100,$020C
+            ;; Block 2:
             FDB    $0000,$0A01,$0002,$0200,$0E00,$010C
             FDB    $0000,$0701,$000E,$00FF,$0100,$FE0B
             FDB    $0000,$08FF,$0002,$FE00,$0D00,$FF0B
             FDB    $0000,$0900,$0101,$0002,$0CFF,$000D
+            ;; Block 3:
             FDB    $0000,$0800,$FF0A,$01FF,$0EFF,$000D
             FDB    $0000,$0900,$010C,$FF00,$07FF,$FF0B
             FDB    $0000,$0800,$FF0A,$01FF,$0EFF,$000D
             FDB    $0000,$0900,$010C,$FF00,$07FF,$FF0B
+            ;; Blocm 4:
             FDB    $0000,$09FF,$000D,$0001,$0701,$010E
             FDB    $0000,$0A01,$0008,$01FF,$0B00,$010C
             FDB    $0000,$09FF,$000D,$0001,$0701,$010E
             FDB    $0000,$0A01,$0008,$01FF,$0B00,$010C
+            ;; Block 5:
             FDB    $0000,$0F00,$FF0B,$0100,$0EFF,$000D
             FDB    $0000,$1200,$FF0B,$0001,$0CFF,$000D
             FDB    $0000,$1000,$010C,$0100,$0EFF,$000D
             FDB    $0000,$1100,$010C,$00FF,$0B01,$000E
+            ;; Block 6:
             FDB    $0000,$0201,$0002,$0200,$0EFF,$000D
             FDB    $0000,$0100,$0101,$0002,$0C00,$FF0B
             FDB    $0000,$0201,$0002,$0200,$0EFF,$000D
