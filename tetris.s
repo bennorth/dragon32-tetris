@@ -786,6 +786,35 @@ OUT7        PULS   X,Y,D
 
 FALLDY      FDB    $3000
 
+            ;; FIXBLK
+            ;;
+            ;; Convert the current block into
+            ;; a display with all "fixed" cells.
+            ;;
+FIXBLK      PSHS   X,Y,D
+            LDB    #$04
+            STB    COUNT
+            LDA    BLKN
+            LDB    #$30
+            MUL
+            TFR    D,Y
+            LDA    BLKR
+            LDB    #$0C
+            MUL
+            ADDD   #BLKTBL
+            LEAY   D,Y      ; START OF DATA NOW IN Y
+FB1         LDA    BLKX
+            ADDA   ,Y+
+            LDB    BLKY
+            ADDB   ,Y++
+            TFR    D,X
+            LDA    #20
+            JSR    PUTCHR
+            DEC    COUNT
+            BNE    FB1
+            PULS   X,Y,D
+            RTS
+
             ;; ONEBLK
             ;;
             ;; CHOOSES A RANDOM BLOCK
