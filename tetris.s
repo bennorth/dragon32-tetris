@@ -49,6 +49,17 @@ GMODE       LDA    VDGPIA
             STA    SAMF6C
             RTS
 
+            ;; GCLS
+            ;;
+            ;; Clear graphics screen.
+            ;;
+GCLS        LDX    SCRBASE
+            LDY    #6144
+GCLS0       CLR    ,X+
+            LEAY   -1,Y
+            BNE    GCLS0
+            RTS
+
             ;; GLOBAL VARIABLES
             ;; AND EQUATES
             ;;
