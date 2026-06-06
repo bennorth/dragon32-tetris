@@ -1,6 +1,8 @@
             ORG    $7000
 
-BEGIN       JSR    PLAY
+BEGIN       JSR    GCLS
+            JSR    GMODE
+            JSR    PLAY
             RTS
 
             ;; Locations of PIA and SAM registers.
