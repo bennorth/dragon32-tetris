@@ -781,7 +781,8 @@ N3          CMPA   #$20
 FALL        JSR    DOWN
             BEQ    SET
             JSR    LDMTRX
-OUT7        PULS   X,Y,D
+OUT7        JSR    FIXBLK
+            PULS   X,Y,D
             RTS
 
 FALLDY      FDB    $3000
