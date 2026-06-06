@@ -949,6 +949,9 @@ PLAY        JSR    BORDER
             JSR    CLMTRX
             CLR    SCORE
             CLR    SCORE+1
+            LDX    #$1001
+            LDD    SCORE
+            JSR    PRSCOR
 BACK        JSR    ONEBLK
             JSR    CHKLIN
             BRA    BACK
