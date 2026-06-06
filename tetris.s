@@ -3,6 +3,29 @@
 BEGIN       JSR    PLAY
             RTS
 
+            ;; Locations of PIA and SAM registers.
+VDGPIA      EQU    $FF22
+SAMV0C      EQU    $FFC0
+SAMV0S      EQU    $FFC1
+SAMV1C      EQU    $FFC2
+SAMV1S      EQU    $FFC3
+SAMV2C      EQU    $FFC4
+SAMV2S      EQU    $FFC5
+SAMF0C      EQU    $FFC6
+SAMF0S      EQU    $FFC7
+SAMF1C      EQU    $FFC8
+SAMF1S      EQU    $FFC9
+SAMF2C      EQU    $FFCA
+SAMF2S      EQU    $FFCB
+SAMF3C      EQU    $FFCC
+SAMF3S      EQU    $FFCD
+SAMF4C      EQU    $FFCE
+SAMF4S      EQU    $FFCF
+SAMF5C      EQU    $FFD0
+SAMF5S      EQU    $FFD1
+SAMF6C      EQU    $FFD2
+SAMF6S      EQU    $FFD3
+
             ;; GLOBAL VARIABLES
             ;; AND EQUATES
             ;;
