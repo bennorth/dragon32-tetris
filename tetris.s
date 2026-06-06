@@ -26,6 +26,29 @@ SAMF5S      EQU    $FFD1
 SAMF6C      EQU    $FFD2
 SAMF6S      EQU    $FFD3
 
+            ;; GMODE
+            ;;
+            ;; Set graphics mode to PMODE 4.  Adapted from p.169ff of
+            ;; "Inside the Dragon".
+            ;;
+GMODE       LDA    VDGPIA
+            ANDA   #$07
+            ORA    #$F0
+            STA    VDGPIA
+            STA    SAMV0C
+            STA    SAMV1S
+            STA    SAMV2S
+            ;; SCRNBASE of $0C00 is 6 * $0200
+            ;; and 6 is 0000110
+            STA    SAMF0C
+            STA    SAMF1S
+            STA    SAMF2S
+            STA    SAMF3C
+            STA    SAMF4C
+            STA    SAMF5C
+            STA    SAMF6C
+            RTS
+
             ;; GLOBAL VARIABLES
             ;; AND EQUATES
             ;;
