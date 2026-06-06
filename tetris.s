@@ -938,12 +938,12 @@ FULL        JSR    CLRLIN
             JSR    MTXDWN
             PSHS   A
             LDA    SCORE+1
-            INCA
+            ADDA   #1
             DAA
             STA    SCORE+1
             BNE    N6
             LDA    SCORE
-            INCA
+            ADDA   #1
             DAA
             STA    SCORE
 N6          LDD    SCORE
