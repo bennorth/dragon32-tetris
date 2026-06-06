@@ -142,7 +142,10 @@ CHTABLE     FDB    $0000,$0000,$0000,$0000 ; full black
             FDB    $BD3D,$FDFD,$FDFD,$3DBD
             FDB    $FFFF,$FFFF,$FFFF,$FFFF
 
-            ;; Chars 20 to 29 (incl): decimal digits 0 to 9
+            ;; Char 20: block once set in position.
+            FDB    $FF81,$BDBD,$BDBD,$81FF
+
+            ;; Chars 21 to 30 (incl): decimal digits 0 to 9
             FDB    $0018,$2424,$2424,$2418
             FDB    $0008,$1808,$0808,$081C
             FDB    $001C,$2202,$1C20,$203E
@@ -167,12 +170,12 @@ PRSCOR      PSHS   X,Y,D
             LSRA
             LSRA
             LSRA
-            ADDA   #$14
+            ADDA   #$15
             JSR    PUTCHR
             LEAX   $0100,X
             LDA    TMP1
             ANDA   #$0F
-            ADDA   #$14
+            ADDA   #$15
             JSR    PUTCHR
             LEAX   $0100,X
             LDA    TMP1+1
@@ -180,12 +183,12 @@ PRSCOR      PSHS   X,Y,D
             LSRA
             LSRA
             LSRA
-            ADDA   #$14
+            ADDA   #$15
             JSR    PUTCHR
             LEAX   $0100,X
             LDA    TMP1+1
             ANDA   #$0F
-            ADDA   #$14
+            ADDA   #$15
             JSR    PUTCHR
             PULS   X,Y,D
             RTS
