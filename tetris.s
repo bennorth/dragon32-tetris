@@ -2,8 +2,9 @@
 
 BEGIN       JSR    GCLS
             JSR    GMODE
+GAME0       JSR    AWAITKEY
             JSR    PLAY
-            RTS
+            JMP    GAME0
 
             ;; Locations of PIA and SAM registers.
 VDGPIA      EQU    $FF22
