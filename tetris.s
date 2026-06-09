@@ -98,8 +98,6 @@ MATRIX      RMB    42
 SCORE       RMB    2
 
 INCH        EQU    $8006
-RANDOM      EQU    $978E
-RND         EQU    $116
 
             ;; PUTCHR
             ;;
@@ -847,15 +845,13 @@ FB1         LDA    BLKX
             ;; AND PLAYS IT
             ;;
 ONEBLK      PSHS   X,Y,D
-            JSR    RANDOM
-            LDA    RND
+            JSR    RND8
 B13         CMPA   #$06
             BLS    N4
             SUBA   #$07
             BRA    B13
 N4          STA    BLKN
-            JSR    RANDOM
-            LDA    RND
+            JSR    RND8
             ANDA   #$03
             STA    BLKR
             LDX    #$0702
