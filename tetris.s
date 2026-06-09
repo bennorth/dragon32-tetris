@@ -868,6 +868,24 @@ GOHOME      PULS   X,Y,D
             LEAS   2,S      ; IF NEW BLOCK IS OVER AN OLD ONE,
             RTS             ; SKIP ONE PC AND RETURN
 
+            ;; CLRALL
+            ;;
+            ;; Clear the play area display.
+            ;;
+CLRALL      PSHS   D,X
+            LDX    SCRBASE
+            LEAX   3,X
+            LDA    #(21 * 8)
+CA0         LDB    #10
+CA1         CLR    ,X+
+            DECB
+            BNE    CA1
+            LEAX   22,X
+            DECA
+            BNE    CA0
+            PULS   D,X
+            RTS
+
             ;; CLRLIN
             ;;
             ;; CLEARS A LINE OF THE PLAY
