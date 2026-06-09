@@ -868,15 +868,13 @@ CN2         STA    NXTBLKN
             ;; AND PLAYS IT
             ;;
 ONEBLK      PSHS   X,Y,D
-            JSR    RND8
-B13         CMPA   #$06
-            BLS    N4
-            SUBA   #$07
-            BRA    B13
-N4          STA    BLKN
-            JSR    RND8
-            ANDA   #$03
-            STA    BLKR
+            LDX    #NXDPY
+            LDD    NXTBLKN
+            JSR    CLRBLK
+            STD    BLKN
+            JSR    CHSNEXT
+            LDD    NXTBLKN
+            JSR    PUTBLK
             LDX    #$0702
             STX    BLKX
             LDD    BLKN
@@ -886,7 +884,10 @@ N4          STA    BLKN
             JSR    GOBLK
             PULS   X,Y,D
             RTS
-GOHOME      PULS   X,Y,D
+GOHOME      LDX    #NXDPY
+            LDD    NXTBLKN
+            JSR    CLRBLK
+            PULS   X,Y,D
             LEAS   2,S      ; IF NEW BLOCK IS OVER AN OLD ONE,
             RTS             ; SKIP ONE PC AND RETURN
 
