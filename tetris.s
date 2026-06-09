@@ -1021,10 +1021,9 @@ OUT9        PULS   X,Y,D
             ;;
 PLAY        JSR    CLMTRX
             JSR    CLRALL
-            CLR    SCORE
-            CLR    SCORE+1
+            LDD    #0
+            STD    SCORE
             LDX    #$1001
-            LDD    SCORE
             JSR    PRSCOR
 BACK        JSR    ONEBLK
             JSR    CHKLIN
