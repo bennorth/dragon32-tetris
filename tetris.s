@@ -1020,6 +1020,7 @@ OUT9        PULS   X,Y,D
             ;;
 PLAY        JSR    BORDER
             JSR    CLMTRX
+            JSR    CLRALL
             CLR    SCORE
             CLR    SCORE+1
             LDX    #$1001
