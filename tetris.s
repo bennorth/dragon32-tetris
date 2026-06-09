@@ -1046,6 +1046,10 @@ PLAY        JSR    CLMTRX
             STD    SCORE
             LDX    #$1001
             JSR    PRSCOR
+            JSR    CHSNEXT
+            LDX    #NXDPY
+            LDD    NXTBLKN
+            JSR    PUTBLK
 BACK        JSR    ONEBLK
             JSR    CHKLIN
             BRA    BACK
