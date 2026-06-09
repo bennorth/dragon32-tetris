@@ -140,6 +140,9 @@ YCRD        RMB    1
 
 SCRBASE     FDB    $0C00
 
+            ;; Display coordinates of "next block": (18, 5)
+NXDPY       EQU    $1205
+
             ;; Table of character graphics.  Each character takes 8
             ;; bytes, so one line of source code.
             ;;
