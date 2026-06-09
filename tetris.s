@@ -96,6 +96,8 @@ BLKX        RMB    1
 BLKY        RMB    1
 BLKN        RMB    1
 BLKR        RMB    1
+NXTBLKN     RMB    1
+NXTBLKR     RMB    1
 MATRIX      RMB    42
 SCORE       RMB    2
 
@@ -840,6 +842,22 @@ FB1         LDA    BLKX
             BNE    FB1
             PULS   X,Y,D
             RTS
+
+            ;; CHSNEXT
+            ;;
+            ;; Choose the "next block".
+            ;;
+CHSNEXT     PSHS   A
+            JSR    RND8
+CN1         CMPA   #$06
+            BLS    CN2
+            SUBA   #$07
+            BRA    CN1
+CN2         STA    NXTBLKN
+            JSR    RND8
+            ANDA   #$03
+            STA    NXTBLKR
+            PULS   A,PC
 
             ;; ONEBLK
             ;;
