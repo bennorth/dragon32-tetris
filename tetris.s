@@ -28,6 +28,31 @@ SAMF5S      EQU    $FFD1
 SAMF6C      EQU    $FFD2
 SAMF6S      EQU    $FFD3
 
+            ;; RND8
+            ;;
+            ;; "Almost certainly nicked from Dragon User"
+            ;; https://www.6809.org.uk/dragon/asm/rnd.s
+            ;;
+RND8        LDA    RND8HIB
+            RORA
+            EORA   RND8HIB
+            RORA
+            RORA
+            EORA   RND8HIB
+            RORA
+            EORA   RND8LOB
+            RORA
+            RORA
+            ANDA   #$01
+            ASL    RND8LOB
+            ROL    RND8HIB
+            ADDA   RND8LOB
+            STA    RND8LOB
+            RTS
+
+RND8HIB     FCB    $55
+RND8LOB     FCB    $33
+
             ;; GMODE
             ;;
             ;; Set graphics mode to PMODE 4.  Adapted from p.169ff of
