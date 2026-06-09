@@ -1009,3 +1009,42 @@ PLAY        JSR    BORDER
 BACK        JSR    ONEBLK
             JSR    CHKLIN
             BRA    BACK
+
+            ;; AWAITKEY
+            ;;
+            ;; While waiting for a keypress, spin a "T"
+            ;; piece and update the random number state.
+            ;; When a keypress does occur, erase the
+            ;; piece and return.
+            ;;
+AWAITKEY    LDX    #$1410
+            LDA    #5
+            LDB    AKROTN
+            JSR    CLRBLK
+            INCB
+            ANDB   #$03
+            STB    AKROTN
+            JSR    PUTBLK
+AK0         INC    RND8LOB
+            BNE    AK1
+            INC    RND8HIB
+AK1         JSR    INCH
+            BNE    AK2
+            LDX    AKPHASE
+            LEAX   -1,X
+            STX    AKPHASE
+            BNE    AK0
+            LDX    #$1000
+            STX    AKPHASE
+            JMP    AWAITKEY
+            ;; Ensure random state is not zero
+AK2         TST    RND8LOB
+            BNE    AK3
+            INC    RND8LOB
+AK3         LDX    #$1410
+            LDA    #5
+            LDB    AKROTN
+            JMP    CLRBLK
+
+AKPHASE     FDB    $1000
+AKROTN      FCB    $00
