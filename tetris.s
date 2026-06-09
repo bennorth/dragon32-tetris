@@ -1,6 +1,7 @@
             ORG    $7000
 
 BEGIN       JSR    GCLS
+            JSR    BORDER
             JSR    GMODE
 GAME0       JSR    AWAITKEY
             JSR    PLAY
@@ -1018,8 +1019,7 @@ OUT9        PULS   X,Y,D
             ;;
             ;; PLAYS A COMPLETE GAME
             ;;
-PLAY        JSR    BORDER
-            JSR    CLMTRX
+PLAY        JSR    CLMTRX
             JSR    CLRALL
             CLR    SCORE
             CLR    SCORE+1
