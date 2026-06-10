@@ -7,7 +7,7 @@ GAME0       JSR    AWAITKEY
             JSR    PLAY
             JMP    GAME0
 
-            ;; Locations of PIA and SAM registers.
+            ;; Locations of PIA and SAM registers:
 VDGPIA      EQU    $FF22
 SAMV0C      EQU    $FFC0
 SAMV0S      EQU    $FFC1
@@ -30,10 +30,12 @@ SAMF5S      EQU    $FFD1
 SAMF6C      EQU    $FFD2
 SAMF6S      EQU    $FFD3
 
-            ;; Address of top-left of display memory
+            ;; Address of top-left of display memory:
 SCRBASE     EQU    $0C00
 
             ;; RND8
+            ;;
+            ;; Return pseudo-random 8-bit value in A.
             ;;
             ;; "Almost certainly nicked from Dragon User"
             ;; https://www.6809.org.uk/dragon/asm/rnd.s
@@ -60,8 +62,9 @@ RND8LOB     FCB    $33
 
             ;; GMODE
             ;;
-            ;; Set graphics mode to PMODE 4.  Adapted from p.169ff of
-            ;; "Inside the Dragon".
+            ;; Set graphics mode to PMODE 4.
+            ;;
+            ;; Adapted from p.169ff of "Inside the Dragon".
             ;;
 GMODE       LDA    VDGPIA
             ANDA   #$07
@@ -70,8 +73,7 @@ GMODE       LDA    VDGPIA
             STA    SAMV0C
             STA    SAMV1S
             STA    SAMV2S
-            ;; SCRNBASE of $0C00 is 6 * $0200
-            ;; and 6 is 0000110
+            ;; SCRNBASE of $0C00 is 6 * $0200; 6 is 0000110
             STA    SAMF0C
             STA    SAMF1S
             STA    SAMF2S
@@ -92,9 +94,7 @@ GCLS0       CLR    ,X+
             BNE    GCLS0
             RTS
 
-            ;; GLOBAL VARIABLES
-            ;; AND EQUATES
-            ;;
+            ;; Global variables and equates:
 BLKX        RMB    1
 BLKY        RMB    1
 BLKN        RMB    1
@@ -108,10 +108,11 @@ INCH        EQU    $8006
 
             ;; PUTCHR
             ;;
-            ;; PRINT A CHAR TO SCREEN
-            ;; IN: X-XCOORD:YCOORD
+            ;; Print a char to screen.
+            ;;
+            ;; In: X-xcoord:ycoord
             ;;       (0-31) (0-23)
-            ;;     A-CHAR TO BE PUT
+            ;;     A-char to be put
             ;;
 PUTCHR      PSHS   X,Y,D
             STX    XCRD
@@ -141,7 +142,7 @@ OUT1        PULS   X,Y,D
 XCRD        RMB    1
 YCRD        RMB    1
 
-            ;; Display coordinates of "next block": (18, 5)
+            ;; Display coordinates of "next block", (18, 5):
 NXDPY       EQU    $1205
 
             ;; Table of character graphics.  Each character takes 8
@@ -190,10 +191,11 @@ CHTABLE     FDB    $0000,$0000,$0000,$0000 ; full black
 
             ;; PRSCOR
             ;;
-            ;; PRINT A NUMBER TO SCREEN
-            ;; IN: X-XCOORD:YCOORD
+            ;; Print a decimal number to the screen.
+            ;;
+            ;; In: X-xcoord:ycoord
             ;;       (0-28) (0-23)
-            ;;     D-NUMBER IN BCD
+            ;;     D-number in BCD
             ;;
 PRSCOR      PSHS   X,Y,D
             STD    TMP1
@@ -228,11 +230,12 @@ TMP1        RMB    2
 
             ;; PUTBLK
             ;;
-            ;; PUT A BLOCK TO SCREEN
-            ;; IN: X-XCOORD:YCOORD
+            ;; Put a block to screen.
+            ;;
+            ;; In: X-xcoord:ycoord
             ;;       (0-31) (0-23)
-            ;;     A-BLOCK TO PUT (0-6)
-            ;;     B-ROTATION (0-3)
+            ;;     A-block to put (0-6)
+            ;;     B-rotation (0-3)
             ;;
 PUTBLK      PSHS   X,Y,D
             STD    TMP1
@@ -246,7 +249,7 @@ PUTBLK      PSHS   X,Y,D
             LDB    #$0C
             MUL
             ADDD   #BLKTBL
-            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LEAY   D,Y      ; Start of data now in Y
 B1          LDA    TMP2
             ADDA   ,Y+
             LDB    TMP2+1
@@ -306,11 +309,12 @@ BLKTBL      FDB    $0000,$0500,$0104,$FF00,$06FF,$0103
 
             ;; CLRBLK
             ;;
-            ;; BLANK A BLOCK FROM SCREEN
-            ;; IN: X-XCOORD:YCOORD
+            ;; Blank a block from the screen.
+            ;;
+            ;; In: X-xcoord:ycoord
             ;;       (0-31) (0-23)
-            ;;     A-BLOCK
-            ;;     B-ROTATION
+            ;;     A-block
+            ;;     B-rotation
             ;;
 CLRBLK      PSHS   X,Y,D
             STD    TMP1
@@ -339,18 +343,18 @@ B2          LDA    TMP2
 
             ;; MOVBLK
             ;;
-            ;; MOVE THE CURRENT BLOCK
-            ;; ONE CHAR POSITION
-            ;; IN: A-DIRECTION
-            ;;       0-DOWN,  1-RIGHT
-            ;;               FF-LEFT
+            ;; Move the current block one char position.
+            ;;
+            ;; In: A-direction
+            ;;       0-down,  1-right
+            ;;               FF-left
             ;;
 MOVBLK      PSHS   X,B
-            PSHS   A        ; SAVE DIR
+            PSHS   A        ; Save dir
             LDX    BLKX
             LDD    BLKN
             JSR    CLRBLK
-            PULS   A        ; GET DIR BACK
+            PULS   A        ; Get dir back
             TSTA
             BEQ    DWN
             ADDA   BLKX
@@ -365,9 +369,7 @@ PUT         LDX    BLKX
 
             ;; ROTBLK
             ;;
-            ;; TWIST CURRENT BLOCK ONE
-            ;; STEP ANTI-CLOCKWISE
-            ;; IN: NONE
+            ;; Twist current block one step anti-clockwise.
             ;;
 ROTBLK      PSHS   X,D
             LDX    BLKX
@@ -383,8 +385,7 @@ ROTBLK      PSHS   X,D
 
             ;; BORDER
             ;;
-            ;; DRAW BORDER ROUND AREA
-            ;; IN: NONE
+            ;; Draw border round play area.
             ;;
 BORDER      PSHS   X,Y,D
             LDX    #SCRBASE
@@ -420,10 +421,10 @@ B4          JSR    PUTBDR
 
             ;; PUTBDR
             ;;
-            ;; PUT A BORDER BLOCK TO THE
-            ;; SCREEN
-            ;; IN: X-DESTINATION ADDRESS
-            ;;     Y-SOURCE ADDRESS
+            ;; Put a border block to the screen.
+            ;;
+            ;; In: X-destination address
+            ;;     Y-source address
             ;;
 PUTBDR      PSHS   X,Y,D
             LDA    #$10
@@ -453,12 +454,13 @@ BDHRZ       FDB    $0000,$C663,$F3CF,$F99F,$3C3C,$0E70,$84E3,$E1C7
 
             ;; RDMTRX
             ;;
-            ;; READ ONE BIT FROM PLAY
-            ;; AREA MATRIX
-            ;; IN: X-XCOORD:YCOORD
-            ;; OUT: CC ZERO BIT-STATUS
-            ;;        0-MTRX BIT SET
-            ;;        1-MTRX BIT CLEAR
+            ;; Read one bit from play area matrix.
+            ;;
+            ;; In: X-xcoord:ycoord
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-mtrx bit set
+            ;;      1-mtrx bit clear
             ;;
 RDMTRX      PSHS   X,Y,D
             STX    XCRD
@@ -472,7 +474,7 @@ RDMTRX      PSHS   X,Y,D
             LSRA
             ADDA   TMP1
             LDX    #MATRIX
-            LEAX   A,X      ; X NOW HOLDS ADDRESS WITH BIT IN
+            LEAX   A,X      ; X now holds address with bit in
             LDA    XCRD
             SUBA   #$03
             ANDA   #$07
@@ -480,19 +482,18 @@ RDMTRX      PSHS   X,Y,D
             LDB    A,Y
             PSHS   B
             LDA    ,X
-            ANDA   ,S+      ; THIS SETS/CLEARS ZERO BIT AS
-                            ; NEEDED
-            PULS   X,Y,D    ; DOES NOT AFFECT ZERO BIT
+            ANDA   ,S+      ; Set/clear zero bit as needed
+            PULS   X,Y,D    ; Does not affect zero bit
             RTS
 
 MASKP       FDB    $8040,$2010,$0804,$0201
 
             ;; WRMTRX
             ;;
-            ;; WRITE ONE BIT TO PLAY
-            ;; AREA MATRIX
-            ;; IN: X-XCOORD:YCOORD
-            ;;     A-BIT TO WRITE (0/1)
+            ;; Write one bit to play area matrix.
+            ;;
+            ;; In: X-xcoord:ycoord
+            ;;     A-bit to write (0/1)
             ;;
 WRMTRX      PSHS   X,Y,D
             STX    XCRD
@@ -509,7 +510,7 @@ WRMTRX      PSHS   X,Y,D
             LSRA
             ADDA   TMP2
             LDX    #MATRIX
-            LEAX   A,X      ; X NOW HOLDS ADDRESS
+            LEAX   A,X      ; X now holds address
             TST    TMP1
             BNE    SETIT
             LDA    XCRD
@@ -537,15 +538,16 @@ MASKN       FDB    $7FBF,$DFEF,$F7FB,$FDFE
 
             ;; CHKCLR
             ;;
-            ;; CHECK TO SEE IF A BLOCK
-            ;; DETAILED WOULD IMPINGE
-            ;; ON A PREVIOUS BLOCK
-            ;; IN: X-XCOORD:YCOORD
-            ;;     A-BLOCK NUMBER
-            ;;     B-ROTATION
-            ;; OUT: CC ZERO BIT
-            ;;      0-WOULD IMPINGE
-            ;;      1-WOULD NOT IMPINGE
+            ;; Check to see if a block detailed would impinge on a
+            ;; previous block.
+            ;;
+            ;; In: X-xcoord:ycoord
+            ;;     A-block number
+            ;;     B-rotation
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-would impinge
+            ;;      1-would not impinge
             ;;
 CHKCLR      PSHS   X,Y,D
             STD    TMP1
@@ -559,33 +561,31 @@ CHKCLR      PSHS   X,Y,D
             LDB    #$0C
             MUL
             ADDD   #BLKTBL
-            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LEAY   D,Y      ; Start of data now in Y
 B6          LDA    TMP2
             ADDA   ,Y+
             LDB    TMP2+1
-            ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
+            ADDB   ,Y++     ; Skip over char data byte
             TFR    D,X
             JSR    RDMTRX
-            BNE    OUT2     ; RETURN LEAVING Z CLEAR IF
-                            ; IMPINGEMENT
+            BNE    OUT2     ; Return with Z clear if impingement
             DEC    COUNT
-            BNE    B6       ; FAILS "BNE" IF ZERO SET, AND THIS
-                            ; IS ALSO WHAT IS WANTED FOR NO
-                            ; IMPINGEMENT
-OUT2        PULS   X,Y,D
-            RTS
+            BNE    B6       ; Fails "BNE" if zero set, and this
+OUT2        PULS   X,Y,D    ; is also what is wanted for no
+            RTS             ; impingement
 
             ;; CHKIN
             ;;
-            ;; CHECK TO SEE IF A BLOCK
-            ;; DETAILED IS ALL INSIDE
-            ;; THE PLAYING AREA
-            ;; IN: X-XCOORD:YCOORD
-            ;;     A-BLOCK NUMBER
-            ;;     B-ROTATION
-            ;; OUT: CC ZERO BIT
-            ;;      0-SOME PROTRUDES
-            ;;      1-ALL INSIDE AREA
+            ;; Check to see if a block detailed is all inside the
+            ;; playing area.
+            ;;
+            ;; In: X-xcoord:ycoord
+            ;;     A-block number
+            ;;     B-rotation
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-some protrudes
+            ;;      1-all inside area
             ;;
 CHKIN       PSHS   X,Y,D
             STD    TMP1
@@ -599,11 +599,11 @@ CHKIN       PSHS   X,Y,D
             LDB    #$0C
             MUL
             ADDD   #BLKTBL
-            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LEAY   D,Y      ; Start of data now in Y
 B7          LDA    TMP2
             ADDA   ,Y+
             LDB    TMP2+1
-            ADDB   ,Y++     ; SKIP OVER CHAR DATA BYTE
+            ADDB   ,Y++     ; Skip over char data byte
             CMPA   #$03
             BLO    PROUT
             CMPA   #$0C
@@ -612,17 +612,15 @@ B7          LDA    TMP2
             BHI    PROUT
             DEC    COUNT
             BNE    B7
+            PULS   X,Y,D    ; Gets here if all inside, and the
+            RTS             ; "DEC" instruction will have set Z
+PROUT       ANDCC  #$FB     ; Clear Z to indicate protrusion
             PULS   X,Y,D
-            RTS             ; GETS HERE IF ALL INSIDE, AND THE
-                            ; "DEC" INSTRUCTION WILL HAVE SET Z
-PROUT       ANDCC  #$FB
-            PULS   X,Y,D
-            RTS             ; CLEAR Z TO INDICATE PROTRUSION
+            RTS
 
             ;; CLMTRX
             ;;
-            ;; CLEAR ENTIRE PLAY MATRIX
-            ;; IN: NONE
+            ;; Clear entire play matrix.
             ;;
 CLMTRX      PSHS   X
             LDX    #MATRIX
@@ -634,18 +632,17 @@ B8          CLR    ,X+
 
             ;; LEFT
             ;;
-            ;; CHECKS IF OK TO MOVE THE
-            ;; CURRENT BLOCK LEFT ONE
-            ;; PLACE, THEN DOES SO IF
-            ;; POSSIBLE
-            ;; OUT: CC ZERO BIT
-            ;;      0-COULD NOT MOVE
-            ;;      1-MOVED OK
+            ;; Check if OK to move the current block left one place,
+            ;; then does so if possible.
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-could not move
+            ;;      1-moved OK
             ;;
 LEFT        PSHS   X,Y,D
             LDD    BLKX
             DECA
-            TFR    D,X      ; COORDS TO TEST IN X
+            TFR    D,X      ; Coords to test in X
             LDD    BLKN
             JSR    CHKIN
             BNE    OUT3
@@ -653,22 +650,22 @@ LEFT        PSHS   X,Y,D
             BNE    OUT3
             LDA    #$FF
             JSR    MOVBLK
-            CLR    TMP1     ; SETS Z
+            CLR    TMP1     ; Sets Z
 OUT3        PULS   X,Y,D
             RTS
 
             ;; RIGHT
             ;;
-            ;; AS FOR `LEFT` BUT MOVES
-            ;; RIGHT NOT LEFT
-            ;; OUT: CC ZERO BIT
-            ;;      0-COULD NOT MOVE
-            ;;      1-MOVED OK
+            ;; As for `LEFT` but move right not left.
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-could not move
+            ;;      1-moved OK
             ;;
 RIGHT       PSHS   X,Y,D
             LDD    BLKX
             INCA
-            TFR    D,X      ; COORDS TO TEST
+            TFR    D,X      ; Coords to test
             LDD    BLKN
             JSR    CHKIN
             BNE    OUT4
@@ -676,17 +673,17 @@ RIGHT       PSHS   X,Y,D
             BNE    OUT4
             LDA    #$01
             JSR    MOVBLK
-            CLR    TMP1     ; SETS Z
+            CLR    TMP1     ; Sets Z
 OUT4        PULS   X,Y,D
             RTS
 
             ;; DOWN
             ;;
-            ;; AS FOR `RIGHT` AND `LEFT`,
-            ;; EXCEPT MOVES DOWN
-            ;; OUT: CC ZERO BIT
-            ;;      0-COULD NOT MOVE
-            ;;      1-MOVED OK
+            ;; As for `RIGHT` and `LEFT`, except move down.
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-could not move
+            ;;      1-moved OK
             ;;
 DOWN        PSHS   X,Y,D
             LDD    BLKX
@@ -705,11 +702,11 @@ OUT5        PULS   X,Y,D
 
             ;; TWIST
             ;;
-            ;; TWISTS BLOCK ONE STEP IF
-            ;; POSSIBLE
-            ;; OUT: CC ZERO BIT
-            ;;      0-COULD NOT TWIST
-            ;;      1-TWISTED OK
+            ;; Twist block one step if possible.
+            ;;
+            ;; Out: CC zero bit
+            ;;      0-could not twist
+            ;;      1-twisted OK
             ;;
 TWIST       PSHS   X,Y,D
             LDX    BLKX
@@ -727,9 +724,7 @@ OUT6        PULS   X,Y,D
 
             ;; LDMTRX
             ;;
-            ;; LOADS CURRENT BLOCK DATA
-            ;; INTO PLAY AREA MATRIX
-            ;; IN: NONE
+            ;; Load current block data into play area matrix.
             ;;
 LDMTRX      PSHS   X,Y,D
             LDA    BLKN
@@ -740,13 +735,13 @@ LDMTRX      PSHS   X,Y,D
             LDB    #$0C
             MUL
             ADDD   #BLKTBL
-            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LEAY   D,Y      ; Start of data now in Y
             LDA    #$04
             STA    COUNT
 B9          LDA    BLKX
             ADDA   ,Y+
             LDB    BLKY
-            ADDB   ,Y++     ; SKIP CHAR DATA BYTE
+            ADDB   ,Y++     ; Skip char data byte
             TFR    D,X
             LDA    #$01
             JSR    WRMTRX
@@ -757,10 +752,8 @@ B9          LDA    BLKX
 
             ;; DROP
             ;;
-            ;; DROPS CURRENT BLOCK AS
-            ;; FAR AS IT WILL GO AND
-            ;; ALTERS MATRIX ACCORDINGLY
-            ;; IN: NONE
+            ;; Drop current block as far as it will go and alter
+            ;; matrix accordingly.
             ;;
 DROP        PSHS   X,Y,D
 B10         JSR    DELAY
@@ -772,7 +765,7 @@ B10         JSR    DELAY
 
             ;; DELAY
             ;;
-            ;; PROVIDES A SHORT DELAY
+            ;; Provide a short delay.
             ;;
 DELAY       PSHS   X
             LDX    #$0800
@@ -783,9 +776,7 @@ B11         LEAX   -1,X
 
             ;; GOBLK
             ;;
-            ;; TAKES CONTROL OF CURRENT
-            ;; BLOCK AND COMPLETES ITS
-            ;; PLAY
+            ;; Take control of current block and complete its play.
             ;;
 GOBLK       PSHS   X,Y,D
 SET         LDY    FALLDY
@@ -820,8 +811,8 @@ FALLDY      FDB    $3000
 
             ;; FIXBLK
             ;;
-            ;; Convert the current block into
-            ;; a display with all "fixed" cells.
+            ;; Convert the current block into a display with all
+            ;; "fixed" cells.
             ;;
 FIXBLK      PSHS   X,Y,D
             LDB    #$04
@@ -834,7 +825,7 @@ FIXBLK      PSHS   X,Y,D
             LDB    #$0C
             MUL
             ADDD   #BLKTBL
-            LEAY   D,Y      ; START OF DATA NOW IN Y
+            LEAY   D,Y      ; Start of data now in Y
 FB1         LDA    BLKX
             ADDA   ,Y+
             LDB    BLKY
@@ -865,8 +856,8 @@ CN2         STA    NXTBLKN
 
             ;; ONEBLK
             ;;
-            ;; CHOOSES A RANDOM BLOCK
-            ;; AND PLAYS IT
+            ;; Bring the "next block" into play, choose a random new
+            ;; "next block", and play the now-current block.
             ;;
 ONEBLK      PSHS   X,Y,D
             LDX    #NXDPY
@@ -889,8 +880,8 @@ GOHOME      LDX    #NXDPY
             LDD    NXTBLKN
             JSR    CLRBLK
             PULS   X,Y,D
-            LEAS   2,S      ; IF NEW BLOCK IS OVER AN OLD ONE,
-            RTS             ; SKIP ONE PC AND RETURN
+            LEAS   2,S      ; If new block is over an old one,
+            RTS             ; skip one PC and return
 
             ;; CLRALL
             ;;
@@ -912,9 +903,9 @@ CA1         CLR    ,X+
 
             ;; CLRLIN
             ;;
-            ;; CLEARS A LINE OF THE PLAY
-            ;; AREA FROM THE SCREEN
-            ;; IN: A-LINE TO CLEAR
+            ;; Clear a line of the play area from the screen.
+            ;;
+            ;; In: A-line to clear
             ;;
 CLRLIN      PSHS   X,Y,D
             LDB    #$03
@@ -942,11 +933,10 @@ B16         LSL    ,X+
 
             ;; LINDWN
             ;;
-            ;; MOVE THE PLAY AREA DOWN
-            ;; ONE LINE ON SCREEN
-            ;; IN: A-LINE WHICH WILL BE
-            ;;       OVERWRITTEN BY THE
-            ;;       MOVING DOWN PROCESS
+            ;; Move the play area down one line on screen.
+            ;;
+            ;; In: A-line which will be overwritten by the moving-down
+            ;;       process
             ;;
 LINDWN      PSHS   X,Y,D
             CMPA   #$01
@@ -974,23 +964,21 @@ B19         LDY    -32,X
             JSR    DELAY
             DEC    ,S
             BNE    B17A
-            LEAS   1,S      ; DISCARD COUNTER
+            LEAS   1,S      ; Discard counter
 OUT8        PULS   X,Y,D
             RTS
 
             ;; CHKLIN
             ;;
-            ;; CHECKS PLAY AREA FOR
-            ;; COMPLETE LINES, AND TAKES
-            ;; APPROPRIATE ACTION IF
-            ;; NECESSARY
+            ;; Check play area for complete lines, and take
+            ;; appropriate action if necessary.
             ;;
 CHKLIN      PSHS   X,Y,D
             LDA    #$01
 B20         LDX    #MATRIX
             LEAX   A,X
-            LDX    A,X      ; TWO DATA BYTES IN X
-            CMPX   #$FFC0   ; FULL LINE
+            LDX    A,X      ; Two data bytes in X
+            CMPX   #$FFC0   ; Full line
             BEQ    FULL
 N5          INCA
             CMPA   #$15
@@ -1018,10 +1006,9 @@ N6          LDD    SCORE
 
             ;; MTXDWN
             ;;
-            ;; MOVES MATRIX DOWN ONE
-            ;; LINE AND CLEARS TOP
-            ;; IN: A-LINE TO MOVE DOWN
-            ;;       TO
+            ;; Move matrix down one line and clears top.
+            ;;
+            ;; In: A-line to move down to
             ;;
 MTXDWN      PSHS   X,Y,D
             CMPA   #$01
@@ -1040,7 +1027,7 @@ OUT9        PULS   X,Y,D
 
             ;; PLAY
             ;;
-            ;; PLAYS A COMPLETE GAME
+            ;; Play a complete game.
             ;;
 PLAY        JSR    CLMTRX
             JSR    CLRALL
@@ -1058,10 +1045,9 @@ BACK        JSR    ONEBLK
 
             ;; AWAITKEY
             ;;
-            ;; While waiting for a keypress, spin a "T"
-            ;; piece and update the random number state.
-            ;; When a keypress does occur, erase the
-            ;; piece and return.
+            ;; While waiting for a keypress, spin a "T" piece and
+            ;; update the random number state.  When a keypress does
+            ;; occur, erase the piece and return.
             ;;
 AWAITKEY    LDX    #$1410
             LDA    #5
@@ -1083,7 +1069,7 @@ AK1         JSR    INCH
             LDX    #$1000
             STX    AKPHASE
             JMP    AWAITKEY
-            ;; Ensure random state is not zero
+            ;; Ensure random state is not zero:
 AK2         TST    RND8LOB
             BNE    AK3
             INC    RND8LOB
