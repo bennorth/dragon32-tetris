@@ -30,6 +30,9 @@ SAMF5S      EQU    $FFD1
 SAMF6C      EQU    $FFD2
 SAMF6S      EQU    $FFD3
 
+            ;; Address of top-left of display memory
+SCRBASE     EQU    $0C00
+
             ;; RND8
             ;;
             ;; "Almost certainly nicked from Dragon User"
@@ -82,7 +85,7 @@ GMODE       LDA    VDGPIA
             ;;
             ;; Clear graphics screen.
             ;;
-GCLS        LDX    SCRBASE
+GCLS        LDX    #SCRBASE
             LDY    #6144
 GCLS0       CLR    ,X+
             LEAY   -1,Y
@@ -124,7 +127,7 @@ PUTCHR      PSHS   X,Y,D
             BHI    OUT1
             CMPB   #$1F
             BHI    OUT1
-            ADDD   SCRBASE
+            ADDD   #SCRBASE
             TFR    D,Y
             LDB    #$08
 B0          LDA    ,X+
@@ -137,8 +140,6 @@ OUT1        PULS   X,Y,D
 
 XCRD        RMB    1
 YCRD        RMB    1
-
-SCRBASE     FDB    $0C00
 
             ;; Display coordinates of "next block": (18, 5)
 NXDPY       EQU    $1205
@@ -386,13 +387,13 @@ ROTBLK      PSHS   X,D
             ;; IN: NONE
             ;;
 BORDER      PSHS   X,Y,D
-            LDX    SCRBASE
+            LDX    #SCRBASE
             LEAX   $0101,X
             LDY    #BDTOP
             JSR    PUTBDR
             LEAX   12,X
             JSR    PUTBDR
-            LDX    SCRBASE
+            LDX    #SCRBASE
             LEAX   $0301,X
             LDY    #BDVRT
             LDA    #$09
@@ -896,7 +897,7 @@ GOHOME      LDX    #NXDPY
             ;; Clear the play area display.
             ;;
 CLRALL      PSHS   D,X
-            LDX    SCRBASE
+            LDX    #SCRBASE
             LEAX   3,X
             LDA    #(21 * 8)
 CA0         LDB    #10
@@ -917,7 +918,7 @@ CA1         CLR    ,X+
             ;;
 CLRLIN      PSHS   X,Y,D
             LDB    #$03
-            ADDD   SCRBASE
+            ADDD   #SCRBASE
             TFR    D,X
             STX    TMP1
             LDA    #$08
@@ -951,9 +952,9 @@ LINDWN      PSHS   X,Y,D
             CMPA   #$01
             BEQ    OUT8
             LDB    #$E3
-            ADDD   SCRBASE
+            ADDD   #SCRBASE
             STD    TMP2
-            LDD    SCRBASE
+            LDD    #SCRBASE
             ADDD   #$01E3
             STD    TMP1
             LDA    #$08
