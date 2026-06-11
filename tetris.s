@@ -250,9 +250,8 @@ PUTBLK      PSHS   X,Y,D
             MUL
             ADDD   #BLKTBL
             LEAY   D,Y      ; Start of data now in Y
-B1          LDA    TMP2
+B1          LDD    TMP2
             ADDA   ,Y+
-            LDB    TMP2+1
             ADDB   ,Y+
             TFR    D,X
             LDA    ,Y+
