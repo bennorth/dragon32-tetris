@@ -993,12 +993,11 @@ FULL        JSR    CLRLIN
             ADDA   #1
             DAA
             STA    SCORE+1
-            BNE    N6
             LDA    SCORE
-            ADDA   #1
+            ADCA   #0
             DAA
             STA    SCORE
-N6          LDD    SCORE
+            LDD    SCORE
             LDX    #$1001
             JSR    PRSCOR
             PULS   A
