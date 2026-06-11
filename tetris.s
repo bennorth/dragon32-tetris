@@ -784,9 +784,14 @@ B12         LEAY   -1,Y
             JSR    INCH
             BEQ    B12
             CMPA   #$09
-            BNE    N1
+            BNE    N0
             JSR    RIGHT
             BRA    B12
+N0          CMPA   #$5E
+            BNE    N1
+            JSR    DOWN
+            BEQ    SET
+            BRA    N4
 N1          CMPA   #$08
             BNE    N2
             JSR    LEFT
@@ -801,7 +806,7 @@ N3          CMPA   #$20
             BRA    B12
 FALL        JSR    DOWN
             BEQ    SET
-            JSR    LDMTRX
+N4          JSR    LDMTRX
 OUT7        JSR    FIXBLK
             PULS   X,Y,D
             RTS
